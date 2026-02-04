@@ -1,0 +1,16 @@
+/home/wandella/Documentos/mouts/employee-management/src/Application/obj/Debug/net8.0/EmployeeManagement.Application.csproj.AssemblyReference.cache
+/home/wandella/Documentos/mouts/employee-management/src/Application/obj/Debug/net8.0/EmployeeManagement.Application.GeneratedMSBuildEditorConfig.editorconfig
+/home/wandella/Documentos/mouts/employee-management/src/Application/obj/Debug/net8.0/EmployeeManagement.Application.AssemblyInfoInputs.cache
+/home/wandella/Documentos/mouts/employee-management/src/Application/obj/Debug/net8.0/EmployeeManagement.Application.AssemblyInfo.cs
+/home/wandella/Documentos/mouts/employee-management/src/Application/obj/Debug/net8.0/EmployeeManagement.Application.csproj.CoreCompileInputs.cache
+/home/wandella/Documentos/mouts/employee-management/src/Application/obj/Debug/net8.0/EmployeeManagement.Application.sourcelink.json
+/home/wandella/Documentos/mouts/employee-management/src/Application/bin/Debug/net8.0/EmployeeManagement.Application.deps.json
+/home/wandella/Documentos/mouts/employee-management/src/Application/bin/Debug/net8.0/EmployeeManagement.Application.dll
+/home/wandella/Documentos/mouts/employee-management/src/Application/bin/Debug/net8.0/EmployeeManagement.Application.pdb
+/home/wandella/Documentos/mouts/employee-management/src/Application/bin/Debug/net8.0/EmployeeManagement.Domain.dll
+/home/wandella/Documentos/mouts/employee-management/src/Application/bin/Debug/net8.0/EmployeeManagement.Domain.pdb
+/home/wandella/Documentos/mouts/employee-management/src/Application/obj/Debug/net8.0/EmployeeManagement.Application.csproj.CopyComplete
+/home/wandella/Documentos/mouts/employee-management/src/Application/obj/Debug/net8.0/EmployeeManagement.Application.dll
+/home/wandella/Documentos/mouts/employee-management/src/Application/obj/Debug/net8.0/refint/EmployeeManagement.Application.dll
+/home/wandella/Documentos/mouts/employee-management/src/Application/obj/Debug/net8.0/EmployeeManagement.Application.pdb
+/home/wandella/Documentos/mouts/employee-management/src/Application/obj/Debug/net8.0/ref/EmployeeManagement.Application.dll

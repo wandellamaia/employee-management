@@ -1,0 +1,12 @@
+/home/wandella/Documentos/mouts/employee-management/src/Domain/bin/Debug/net8.0/EmployeeManagement.Domain.deps.json
+/home/wandella/Documentos/mouts/employee-management/src/Domain/bin/Debug/net8.0/EmployeeManagement.Domain.dll
+/home/wandella/Documentos/mouts/employee-management/src/Domain/bin/Debug/net8.0/EmployeeManagement.Domain.pdb
+/home/wandella/Documentos/mouts/employee-management/src/Domain/obj/Debug/net8.0/EmployeeManagement.Domain.GeneratedMSBuildEditorConfig.editorconfig
+/home/wandella/Documentos/mouts/employee-management/src/Domain/obj/Debug/net8.0/EmployeeManagement.Domain.AssemblyInfoInputs.cache
+/home/wandella/Documentos/mouts/employee-management/src/Domain/obj/Debug/net8.0/EmployeeManagement.Domain.AssemblyInfo.cs
+/home/wandella/Documentos/mouts/employee-management/src/Domain/obj/Debug/net8.0/EmployeeManagement.Domain.csproj.CoreCompileInputs.cache
+/home/wandella/Documentos/mouts/employee-management/src/Domain/obj/Debug/net8.0/EmployeeManagement.Domain.sourcelink.json
+/home/wandella/Documentos/mouts/employee-management/src/Domain/obj/Debug/net8.0/EmployeeManagement.Domain.dll
+/home/wandella/Documentos/mouts/employee-management/src/Domain/obj/Debug/net8.0/refint/EmployeeManagement.Domain.dll
+/home/wandella/Documentos/mouts/employee-management/src/Domain/obj/Debug/net8.0/EmployeeManagement.Domain.pdb
+/home/wandella/Documentos/mouts/employee-management/src/Domain/obj/Debug/net8.0/ref/EmployeeManagement.Domain.dll
