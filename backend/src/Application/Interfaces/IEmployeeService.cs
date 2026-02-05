@@ -8,6 +8,6 @@ public interface IEmployeeService
     Task<EmployeeResponseDto> CreateEmployeeAsync(EmployeeCreateDto createDto, int requesterId, EmployeeRole requesterRole);
     Task<List<EmployeeResponseDto>> GetAllEmployeesAsync();
     Task<EmployeeResponseDto?> GetEmployeeByIdAsync(int id);
-    Task<bool> DeleteEmployeeAsync(int id);
-    Task<EmployeeResponseDto?> UpdateEmployeeAsync(int id, EmployeeCreateDto updateDto);
+    Task<bool> DeleteEmployeeAsync(int id, int requesterId, EmployeeRole requesterRole);
+    Task<EmployeeResponseDto?> UpdateEmployeeAsync(int id, EmployeeCreateDto updateDto, int requesterId, EmployeeRole requesterRole);
 }

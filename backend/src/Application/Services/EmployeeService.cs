@@ -87,24 +87,61 @@ public class EmployeeService : IEmployeeService
         return MapToDto(employee);
     }
 
-    public async Task<bool> DeleteEmployeeAsync(int id)
+    public async Task<bool> DeleteEmployeeAsync(int id, int requesterId, EmployeeRole requesterRole)
     {
         var employee = await _repository.GetByIdAsync(id);
         if (employee == null) return false;
+
+        // 1. Validate Hierarchy
+        // A user can delete themselves or anyone with a role <= their own
+        if (employee.Role > requesterRole && employee.Id != requesterId)
+        {
+            throw new UnauthorizedAccessException("You do not have permission to delete this employee.");
+        }
+
+        // 2. Detach subordinates before deleting manager
+        var subordinates = await _repository.GetSubordinatesAsync(id);
+        foreach (var sub in subordinates)
+        {
+            sub.ManagerId = null;
+            await _repository.UpdateAsync(sub);
+        }
         
         await _repository.DeleteAsync(employee);
         return true;
     }
 
-    public async Task<EmployeeResponseDto?> UpdateEmployeeAsync(int id, EmployeeCreateDto updateDto)
+    public async Task<EmployeeResponseDto?> UpdateEmployeeAsync(int id, EmployeeCreateDto updateDto, int requesterId, EmployeeRole requesterRole)
     {
         var employee = await _repository.GetByIdAsync(id);
         if (employee == null) return null;
 
+        // 1. Validate Hierarchy
+        if (updateDto.Role > requesterRole)
+            throw new UnauthorizedAccessException("You cannot assign a role higher than your current permissions.");
+
+        if (employee.Role > requesterRole && employee.Id != requesterId)
+            throw new UnauthorizedAccessException("You do not have permission to update this employee.");
+
+        // 2. Email Uniqueness (if changing)
+        if (employee.Email.ToLower() != updateDto.Email.ToLower())
+        {
+            if (await _repository.ExistsAsync(updateDto.Email))
+                throw new ArgumentException("New email is already in use.");
+            employee.Email = updateDto.Email;
+        }
+
+        // 3. Password update (if provided)
+        if (!string.IsNullOrWhiteSpace(updateDto.Password))
+        {
+            employee.PasswordHash = _authService.HashPassword(updateDto.Password);
+        }
+
+        // 4. Update other fields
         employee.FirstName = updateDto.FirstName;
         employee.LastName = updateDto.LastName;
-        // employee.Email = updateDto.Email; 
-        // employee.Role = updateDto.Role;
+        employee.Role = updateDto.Role;
+        employee.ManagerId = updateDto.ManagerId == 0 ? null : updateDto.ManagerId;
         
         var today = DateTime.UtcNow.Date;
         var age = today.Year - updateDto.DateOfBirth.Year;
@@ -113,8 +150,6 @@ public class EmployeeService : IEmployeeService
         employee.DateOfBirth = updateDto.DateOfBirth;
         
         // Update Phones
-        // This logic depends on Repo handling collection updates.
-        // I'll assume I can modify the collection and call UpdateAsync.
         employee.Phones.Clear();
         foreach (var p in updateDto.Phones)
         {

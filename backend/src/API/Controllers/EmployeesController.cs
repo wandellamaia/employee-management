@@ -63,25 +63,52 @@ public class EmployeesController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        // Add logic: Only Director can delete? Or Leader? 
-        // For now open to authenticated users per generic CRUD, but ideally should have checks.
-        var success = await _employeeService.DeleteEmployeeAsync(id);
-        if (!success) return NotFound();
-        return NoContent();
+        var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value ?? User.FindFirst("role")?.Value;
+        if (string.IsNullOrEmpty(roleClaim) || !Enum.TryParse<EmployeeRole>(roleClaim, out var requesterRole))
+        {
+            return Unauthorized("Role claim missing or invalid.");
+        }
+
+        var idClaim = User.FindFirst("Id")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        int.TryParse(idClaim, out int requesterId);
+
+        try
+        {
+            var success = await _employeeService.DeleteEmployeeAsync(id, requesterId, requesterRole);
+            if (!success) return NotFound();
+            return NoContent();
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Forbid(ex.Message);
+        }
     }
     
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] EmployeeCreateDto updateDto)
     {
-         try
+        var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value ?? User.FindFirst("role")?.Value;
+        if (string.IsNullOrEmpty(roleClaim) || !Enum.TryParse<EmployeeRole>(roleClaim, out var requesterRole))
         {
-            var result = await _employeeService.UpdateEmployeeAsync(id, updateDto);
+            return Unauthorized("Role claim missing or invalid.");
+        }
+
+        var idClaim = User.FindFirst("Id")?.Value ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        int.TryParse(idClaim, out int requesterId);
+
+        try
+        {
+            var result = await _employeeService.UpdateEmployeeAsync(id, updateDto, requesterId, requesterRole);
             if (result == null) return NotFound();
             return Ok(result);
         }
         catch (ArgumentException ex)
         {
             return BadRequest(ex.Message);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Forbid(ex.Message);
         }
     }
 }
