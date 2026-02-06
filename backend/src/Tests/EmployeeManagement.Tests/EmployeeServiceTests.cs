@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
+using EmployeeManagement.Application.Interfaces;
 
 namespace EmployeeManagement.Tests;
 
@@ -167,7 +168,7 @@ public class EmployeeServiceTests
         _employeeRepositoryMock.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(employee);
 
         // Act
-        var result = await _sut.DeleteEmployeeAsync(1);
+        var result = await _sut.DeleteEmployeeAsync(1, 1, EmployeeRole.Director);
 
         // Assert
         Assert.True(result);
@@ -181,10 +182,85 @@ public class EmployeeServiceTests
         _employeeRepositoryMock.Setup(x => x.GetByIdAsync(1)).ReturnsAsync((Employee?)null);
 
         // Act
-        var result = await _sut.DeleteEmployeeAsync(1);
+        var result = await _sut.DeleteEmployeeAsync(1, 1, EmployeeRole.Director);
 
         // Assert
         Assert.False(result);
         _employeeRepositoryMock.Verify(x => x.DeleteAsync(It.IsAny<Employee>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateEmployeeAsync_ShouldUpdatePassword_WhenProvided()
+    {
+        // Arrange
+        var employee = new Employee 
+        { 
+            Id = 1, 
+            FirstName = "Old", 
+            LastName = "Name", 
+            Email = "old@test.com", 
+            DocumentNumber="123", 
+            PasswordHash="old_hash",
+            DateOfBirth = DateTime.UtcNow.AddYears(-25)
+        };
+        
+        var updateDto = new EmployeeUpdateDto
+        {
+            FirstName = "New",
+            LastName = "Name",
+            Email = "old@test.com",
+            DocumentNumber = "123",
+            Password = "NewPassword123",
+            Role = EmployeeRole.Employee,
+            DateOfBirth = DateTime.UtcNow.AddYears(-25),
+            Phones = new List<PhoneDto>()
+        };
+
+        _employeeRepositoryMock.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(employee);
+        _authServiceMock.Setup(x => x.HashPassword("NewPassword123")).Returns("new_hash");
+
+        // Act
+        await _sut.UpdateEmployeeAsync(1, updateDto, 1, EmployeeRole.Director);
+
+        // Assert
+        Assert.Equal("new_hash", employee.PasswordHash);
+        _employeeRepositoryMock.Verify(x => x.UpdateAsync(employee), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateEmployeeAsync_ShouldKeepPassword_WhenNotProvided()
+    {
+        // Arrange
+        var employee = new Employee 
+        { 
+            Id = 1, 
+            FirstName = "Old", 
+            LastName = "Name", 
+            Email = "old@test.com", 
+            DocumentNumber="123", 
+            PasswordHash="old_hash",
+            DateOfBirth = DateTime.UtcNow.AddYears(-25)
+        };
+        
+        var updateDto = new EmployeeUpdateDto
+        {
+            FirstName = "New",
+            LastName = "Name",
+            Email = "old@test.com",
+            DocumentNumber = "123",
+            Password = null,
+            Role = EmployeeRole.Employee,
+            DateOfBirth = DateTime.UtcNow.AddYears(-25),
+            Phones = new List<PhoneDto>()
+        };
+
+        _employeeRepositoryMock.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(employee);
+
+        // Act
+        await _sut.UpdateEmployeeAsync(1, updateDto, 1, EmployeeRole.Director);
+
+        // Assert
+        Assert.Equal("old_hash", employee.PasswordHash);
+        _employeeRepositoryMock.Verify(x => x.UpdateAsync(employee), Times.Once);
     }
 }

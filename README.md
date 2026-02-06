@@ -33,14 +33,14 @@ This will start all the following services:
 
 The project includes a pre-configured observability stack accessible via Grafana.
 
-Traces
-Check the traces [grafana](http://localhost:3000) on data source Tempo
+## Traces
+Check the traces [grafana](http://localhost:3000) on data source `Tempo`
 
-Metrics
-Check the metrics [grafana](http://localhost:3000) on data source Prometheus
+## Metrics
+Check the metrics [grafana](http://localhost:3000) on data source `Prometheus`
 
-Logs 
-Check the logs [grafana](http://localhost:3000) on data source Loki
+## Logs
+Check the logs [grafana](http://localhost:3000) on data source `Loki`
 
 - **Username/Password**: Anonymous access is enabled (no login required for viewing).
 - **Data Sources**: Pre-configured for Prometheus (Metrics), Loki (Logs), and Tempo (Traces).
@@ -60,6 +60,18 @@ Logs
 cd backend
 dotnet restore
 dotnet run --project src/API/EmployeeManagement.API.csproj
+```
+
+Alternatively, run from the root directory:
+```bash
+dotnet run --project backend/src/API/EmployeeManagement.API.csproj
+```
+
+#### Running Tests
+
+```bash
+cd backend
+dotnet test
 ```
 
 ### Frontend

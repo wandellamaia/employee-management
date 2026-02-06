@@ -76,6 +76,7 @@ public class EmployeeService : IEmployeeService
             }).ToList()
         };
 
+        await _repository.AddAsync(newEmployee);
         _logger.LogInformation("Successfully created employee {Email} with ID {Id}", newEmployee.Email, newEmployee.Id);
         return MapToDto(newEmployee);
     }

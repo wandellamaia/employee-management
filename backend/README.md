@@ -36,4 +36,27 @@ graph TD
 
 ## Development
 
-Refer to the root [README](../README.md) for instructions on how to run the project.
+To run the backend locally:
+
+```bash
+# From the backend directory
+dotnet restore
+dotnet run --project src/API/EmployeeManagement.API.csproj
+```
+
+Or from the root directory:
+
+```bash
+dotnet run --project backend/src/API/EmployeeManagement.API.csproj
+```
+
+## Testing
+
+To run the backend tests:
+
+```bash
+# From the backend directory
+dotnet test
+```
+
+Refer to the root [README](../README.md) for full project instructions.

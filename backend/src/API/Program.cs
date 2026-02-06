@@ -29,25 +29,31 @@ var resourceBuilder = ResourceBuilder.CreateDefault()
     .AddEnvironmentVariableDetector();
 
 builder.Services.AddOpenTelemetry()
-    .WithTracing(tracing => tracing
-        .AddSource("EmployeeManagement.API")
-        .SetResourceBuilder(resourceBuilder)
-        .AddAspNetCoreInstrumentation()
-        .AddHttpClientInstrumentation()
-        .AddEntityFrameworkCoreInstrumentation()
-        .AddOtlpExporter(options =>
+    .WithTracing(tracing => {
+        tracing.AddSource("EmployeeManagement.API")
+               .SetResourceBuilder(resourceBuilder)
+               .AddAspNetCoreInstrumentation()
+               .AddHttpClientInstrumentation()
+               .AddEntityFrameworkCoreInstrumentation();
+        
+        var endpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
+        if (!string.IsNullOrEmpty(endpoint))
         {
-            options.Endpoint = new Uri(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]!);
-        }))
-    .WithMetrics(metrics => metrics
-        .SetResourceBuilder(resourceBuilder)
-        .AddAspNetCoreInstrumentation()
-        .AddHttpClientInstrumentation()
-        .AddRuntimeInstrumentation()
-        .AddOtlpExporter(options =>
+            tracing.AddOtlpExporter(options => options.Endpoint = new Uri(endpoint));
+        }
+    })
+    .WithMetrics(metrics => {
+        metrics.SetResourceBuilder(resourceBuilder)
+               .AddAspNetCoreInstrumentation()
+               .AddHttpClientInstrumentation()
+               .AddRuntimeInstrumentation();
+               
+        var endpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
+        if (!string.IsNullOrEmpty(endpoint))
         {
-            options.Endpoint = new Uri(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]!);
-        }));
+            metrics.AddOtlpExporter(options => options.Endpoint = new Uri(endpoint));
+        }
+    });
 
 builder.Logging.AddOpenTelemetry(logging =>
 {
@@ -55,10 +61,11 @@ builder.Logging.AddOpenTelemetry(logging =>
     logging.IncludeFormattedMessage = true;
     logging.IncludeScopes = true;
     logging.ParseStateValues = true;
-    logging.AddOtlpExporter(options =>
+    var endpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
+    if (!string.IsNullOrEmpty(endpoint))
     {
-        options.Endpoint = new Uri(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]!);
-    });
+        logging.AddOtlpExporter(options => options.Endpoint = new Uri(endpoint));
+    }
 });
 
 builder.Services.AddCors(options =>
