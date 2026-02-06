@@ -26,10 +26,19 @@ public class AuthService : IAuthService
 
     public async Task<TokenDto?> LoginAsync(LoginDto loginDto)
     {
-        _logger.LogInformation("Login attempt for email: {Email}", loginDto.Email);
+        Console.WriteLine($"Login attempt for: {loginDto.Email}");
         var employee = await _employeeRepository.GetByEmailAsync(loginDto.Email);
 
-        if (employee == null || !VerifyPassword(loginDto.Password, employee.PasswordHash))
+        if (employee == null)
+        {
+            Console.WriteLine($"User not found: {loginDto.Email}");
+            return null;
+        }
+
+        bool passwordValid = VerifyPassword(loginDto.Password, employee.PasswordHash);
+        Console.WriteLine($"Password valid for {loginDto.Email}: {passwordValid}");
+
+        if (!passwordValid)
         {
             _logger.LogWarning("Login failed for email: {Email}. Invalid credentials.", loginDto.Email);
             return null;
@@ -40,7 +49,8 @@ public class AuthService : IAuthService
         return new TokenDto 
         { 
             Token = token, 
-            Role = employee.Role.ToString(),
+            Role = ((int)employee.Role).ToString(),
+            EmployeeId = employee.Id,
             Expiration = DateTime.UtcNow.AddHours(8)
         };
     }

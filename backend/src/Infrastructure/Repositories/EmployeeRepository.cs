@@ -25,7 +25,7 @@ public class EmployeeRepository : IEmployeeRepository
     {
         return await _context.Employees
             .Include(e => e.Phones)
-            .FirstOrDefaultAsync(e => e.Email == email);
+            .FirstOrDefaultAsync(e => e.Email.ToLower() == email.ToLower());
     }
 
     public async Task<IEnumerable<Employee>> GetAllAsync()
@@ -37,7 +37,7 @@ public class EmployeeRepository : IEmployeeRepository
 
     public async Task<bool> ExistsAsync(string email)
     {
-        return await _context.Employees.AnyAsync(e => e.Email == email);
+        return await _context.Employees.AnyAsync(e => e.Email.ToLower() == email.ToLower());
     }
 
     public async Task AddAsync(Employee employee)
