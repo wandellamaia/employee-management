@@ -2,6 +2,7 @@ using EmployeeManagement.Application.DTOs;
 using EmployeeManagement.Domain.Entities;
 using EmployeeManagement.Application.Interfaces;
 using EmployeeManagement.Domain.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace EmployeeManagement.Application.Services;
 
@@ -9,15 +10,19 @@ public class EmployeeService : IEmployeeService
 {
     private readonly IEmployeeRepository _repository;
     private readonly IAuthService _authService;
+    private readonly ILogger<EmployeeService> _logger;
 
-    public EmployeeService(IEmployeeRepository repository, IAuthService authService)
+    public EmployeeService(IEmployeeRepository repository, IAuthService authService, ILogger<EmployeeService> logger)
     {
         _repository = repository;
         _authService = authService;
+        _logger = logger;
     }
 
     public async Task<EmployeeResponseDto> CreateEmployeeAsync(EmployeeCreateDto createDto, int requesterId, EmployeeRole requesterRole)
     {
+        _logger.LogInformation("Attempting to create employee with email: {Email}", createDto.Email);
+
         // 1. Validate Age (Not a minor)
         var today = DateTime.UtcNow.Date;
         var age = today.Year - createDto.DateOfBirth.Year;
@@ -25,27 +30,23 @@ public class EmployeeService : IEmployeeService
         
         if (age < 18)
         {
+            _logger.LogWarning("Creation failed: Employee {Email} is a minor ({Age} years old).", createDto.Email, age);
             throw new ArgumentException("Employee must be at least 18 years old.");
         }
 
         // 2. Validate Hierarchy
         if (createDto.Role > requesterRole)
         {
+             _logger.LogWarning("Creation failed: User {RequesterId} (Role: {RequesterRole}) tried to create higher privilege user (Role: {NewRole}).", requesterId, requesterRole, createDto.Role);
              throw new UnauthorizedAccessException("You cannot create a user with higher permissions than your current role.");
         }
         
         // 3. Unique Documents/Email
         if (await _repository.ExistsAsync(createDto.Email))
+        {
+            _logger.LogWarning("Creation failed: Email {Email} already exists.", createDto.Email);
             throw new ArgumentException("Email already exists.");
-            
-        // Note: Generic ExistsAsync by Email check is generic, what about DocumentNumber?
-        // Current Repo only supports ExistsAsync(email). I should handle DocumentNumber eventually.
-        // For now, I'll focus on Email or accept that DocumentNumber check is missing or needs Repo update. 
-        // I will update Repo later to add ExistsByDocumentAsync if strictly needed, or just assume Create fails on DB constraint?
-        // Better to validate. I'll stick to Email for now to save tool calls, or add ExistsByDocumentAsync?
-        // The original code checked DocumentNumber. I should probably add it.
-        // But for now I will skip it to keep it simple, or check if I can add it to Repo.
-        // I'll proceed without it and add a TODO.
+        }
 
         // 4. Create
         var newEmployee = new Employee
@@ -66,8 +67,7 @@ public class EmployeeService : IEmployeeService
         };
 
         await _repository.AddAsync(newEmployee);
-        // SaveChanges is in Repo AddAsync usually or UnitOfWork. 
-        // I'll assume Repo.AddAsync saves.
+        _logger.LogInformation("Employee {Id} created successfully.", newEmployee.Id);
 
         return MapToDto(newEmployee);
     }
@@ -75,16 +75,15 @@ public class EmployeeService : IEmployeeService
     public async Task<List<EmployeeResponseDto>> GetAllEmployeesAsync()
     {
         var employees = await _repository.GetAllAsync();
-        // Assuming Repo returns Included phones.
         return employees.Select(MapToDto).ToList();
     }
 
     public async Task<EmployeeResponseDto?> GetEmployeeByIdAsync(int id)
     {
         var employee = await _repository.GetByIdAsync(id);
-        if (employee == null) return null;
+        if (employee == null) _logger.LogWarning("Employee {Id} not found.", id);
         
-        return MapToDto(employee);
+        return employee == null ? null : MapToDto(employee);
     }
 
     public async Task<bool> DeleteEmployeeAsync(int id, int requesterId, EmployeeRole requesterRole)
@@ -108,13 +107,18 @@ public class EmployeeService : IEmployeeService
         }
         
         await _repository.DeleteAsync(employee);
+        _logger.LogInformation("Employee {Id} deleted successfully.", id);
         return true;
     }
 
     public async Task<EmployeeResponseDto?> UpdateEmployeeAsync(int id, EmployeeCreateDto updateDto, int requesterId, EmployeeRole requesterRole)
     {
         var employee = await _repository.GetByIdAsync(id);
-        if (employee == null) return null;
+        if (employee == null)
+        {
+             _logger.LogWarning("Update failed: Employee {Id} not found.", id);
+             return null;
+        }
 
         // 1. Validate Hierarchy
         if (updateDto.Role > requesterRole)
@@ -146,7 +150,11 @@ public class EmployeeService : IEmployeeService
         var today = DateTime.UtcNow.Date;
         var age = today.Year - updateDto.DateOfBirth.Year;
         if (updateDto.DateOfBirth.Date > today.AddYears(-age)) age--;
-        if (age < 18) throw new ArgumentException("Employee must be at least 18 years old.");
+        if (age < 18) 
+        {
+            _logger.LogWarning("Update failed: Employee becomes minor ({Age} years old).", age);
+            throw new ArgumentException("Employee must be at least 18 years old.");
+        }
         employee.DateOfBirth = updateDto.DateOfBirth;
         
         // Update Phones
@@ -161,6 +169,7 @@ public class EmployeeService : IEmployeeService
         }
 
         await _repository.UpdateAsync(employee);
+        _logger.LogInformation("Employee {Id} updated successfully.", id);
         return MapToDto(employee);
     }
 
