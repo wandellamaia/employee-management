@@ -13,7 +13,7 @@ services:
 
   backend:
     build:
-      context: .
+      context: ./backend
       dockerfile: src/Dockerfile
     container_name: employee_api
     depends_on:
@@ -27,6 +27,29 @@ services:
       - Jwt__Audience=EmployeeApiClients
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_ENVIRONMENT=Development
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://grafana:4317
+      - OTEL_SERVICE_NAME=EmployeeManagement.API
+      - OTEL_RESOURCE_ATTRIBUTES=service.name=EmployeeManagement.API
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: employee_web
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+  grafana:
+    image: grafana/otel-lgtm:latest
+    container_name: employee_grafana
+    ports:
+      - "3000:3000" # Grafana UI
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
+    environment:
+      - OTEL_METRIC_EXPORT_INTERVAL=5000
 
 volumes:
   postgres_data:

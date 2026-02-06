@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.Extensions.Logging;
 
 namespace EmployeeManagement.Application.Services;
 
@@ -14,31 +15,35 @@ public class AuthService : IAuthService
 {
     private readonly IEmployeeRepository _employeeRepository;
     private readonly IConfiguration _configuration;
+    private readonly ILogger<AuthService> _logger;
 
-    public AuthService(IEmployeeRepository employeeRepository, IConfiguration configuration)
+    public AuthService(IEmployeeRepository employeeRepository, IConfiguration configuration, ILogger<AuthService> logger)
     {
         _employeeRepository = employeeRepository;
         _configuration = configuration;
+        _logger = logger;
     }
 
     public async Task<TokenDto?> LoginAsync(LoginDto loginDto)
     {
-        Console.WriteLine($"Login attempt for: {loginDto.Email}");
+        _logger.LogInformation("Login attempt for user: {Email}", loginDto.Email);
         var employee = await _employeeRepository.GetByEmailAsync(loginDto.Email);
 
         if (employee == null)
         {
-            Console.WriteLine($"User not found: {loginDto.Email}");
+            _logger.LogWarning("Login failed: User {Email} not found", loginDto.Email);
             return null;
         }
 
         bool passwordValid = VerifyPassword(loginDto.Password, employee.PasswordHash);
-        Console.WriteLine($"Password valid for {loginDto.Email}: {passwordValid}");
-
+        
         if (!passwordValid)
         {
+            _logger.LogWarning("Login failed: Invalid password for user {Email}", loginDto.Email);
             return null;
         }
+
+        _logger.LogInformation("Login successful for user {Email}", loginDto.Email);
 
         var token = GenerateJwtToken(employee);
         return new TokenDto 

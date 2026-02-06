@@ -3,6 +3,7 @@ using EmployeeManagement.Domain.Entities;
 using EmployeeManagement.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
 namespace EmployeeManagement.API.Controllers;
@@ -13,10 +14,12 @@ namespace EmployeeManagement.API.Controllers;
 public class EmployeesController : ControllerBase
 {
     private readonly IEmployeeService _employeeService;
+    private readonly ILogger<EmployeesController> _logger;
 
-    public EmployeesController(IEmployeeService employeeService)
+    public EmployeesController(IEmployeeService employeeService, ILogger<EmployeesController> logger)
     {
         _employeeService = employeeService;
+        _logger = logger;
     }
 
     [HttpPost]
@@ -33,30 +36,41 @@ public class EmployeesController : ControllerBase
 
         try
         {
+            _logger.LogInformation("POST request to create employee by user {RequesterId}", requesterId);
             var result = await _employeeService.CreateEmployeeAsync(createDto, requesterId, requesterRole);
+            _logger.LogInformation("Successfully created employee with ID {Id}", result.Id);
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
         }
         catch (ArgumentException ex)
         {
+            _logger.LogWarning("Validation error in Create: {Message}", ex.Message);
             return BadRequest(ex.Message);
         }
         catch (UnauthorizedAccessException ex)
         {
-            return Forbid(ex.Message);
+            _logger.LogWarning("Unauthorized error in Create: {Message}", ex.Message);
+            return StatusCode(403, ex.Message);
         }
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        return Ok(await _employeeService.GetAllEmployeesAsync());
+        _logger.LogInformation("GET all employees request");
+        var result = await _employeeService.GetAllEmployeesAsync();
+        return Ok(result);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
+        _logger.LogInformation("GET employee request for ID {Id}", id);
         var employee = await _employeeService.GetEmployeeByIdAsync(id);
-        if (employee == null) return NotFound();
+        if (employee == null) 
+        {
+            _logger.LogWarning("Employee {Id} not found", id);
+            return NotFound();
+        }
         return Ok(employee);
     }
 
@@ -74,13 +88,20 @@ public class EmployeesController : ControllerBase
 
         try
         {
+            _logger.LogInformation("DELETE request for employee {Id} by user {RequesterId}", id, requesterId);
             var success = await _employeeService.DeleteEmployeeAsync(id, requesterId, requesterRole);
-            if (!success) return NotFound();
+            if (!success)
+            {
+                _logger.LogWarning("Employee {Id} not found for deletion", id);
+                return NotFound();
+            }
+            _logger.LogInformation("Successfully deleted employee {Id}", id);
             return NoContent();
         }
         catch (UnauthorizedAccessException ex)
         {
-            return Forbid(ex.Message);
+            _logger.LogWarning("Unauthorized error in Delete: {Message}", ex.Message);
+            return StatusCode(403, ex.Message);
         }
     }
     
@@ -98,17 +119,25 @@ public class EmployeesController : ControllerBase
 
         try
         {
+            _logger.LogInformation("PUT request for employee {Id} by user {RequesterId}", id, requesterId);
             var result = await _employeeService.UpdateEmployeeAsync(id, updateDto, requesterId, requesterRole);
-            if (result == null) return NotFound();
+            if (result == null)
+            {
+                _logger.LogWarning("Employee {Id} not found for update", id);
+                return NotFound();
+            }
+            _logger.LogInformation("Successfully updated employee {Id}", id);
             return Ok(result);
         }
         catch (ArgumentException ex)
         {
+            _logger.LogWarning("Validation error in Update: {Message}", ex.Message);
             return BadRequest(ex.Message);
         }
         catch (UnauthorizedAccessException ex)
         {
-            return Forbid(ex.Message);
+            _logger.LogWarning("Unauthorized error in Update: {Message}", ex.Message);
+            return StatusCode(403, ex.Message);
         }
     }
 }

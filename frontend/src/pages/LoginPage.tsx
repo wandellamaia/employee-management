@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../api/apiClient';
+import { getErrorMessage } from '../utils/errorUtils';
 import { LogIn, Mail, Lock, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -28,7 +29,7 @@ const LoginPage: React.FC = () => {
             login(response.data);
             navigate('/');
         } catch (err: any) {
-            setError(err.response?.data || 'Login failed. Please check your credentials.');
+            setError(getErrorMessage(err));
         } finally {
             setIsLoading(false);
         }

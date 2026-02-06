@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../api/apiClient';
+import { getErrorMessage } from '../utils/errorUtils';
 import type { Employee, EmployeeCreateDto } from '../types';
 import { EmployeeRole } from '../types';
 import {
@@ -87,32 +88,9 @@ const EmployeeFormPage: React.FC = () => {
         });
     };
 
-    const validateAge = (dob: string) => {
-        const birthDate = new Date(dob);
-        const today = new Date();
-        let age = today.getFullYear() - birthDate.getFullYear();
-        const monthDiff = today.getMonth() - birthDate.getMonth();
-        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-            age--;
-        }
-        return age >= 18;
-    };
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
-
-        // Age validation
-        if (!validateAge(formData.dateOfBirth)) {
-            setError('Employee must be at least 18 years old.');
-            return;
-        }
-
-        // Role check (Frontend)
-        if (user && formData.role > user.role) {
-            setError('You cannot create an employee with a higher role than yours.');
-            return;
-        }
 
         setIsLoading(true);
         try {
@@ -123,7 +101,7 @@ const EmployeeFormPage: React.FC = () => {
             }
             navigate('/');
         } catch (err: any) {
-            setError(err.response?.data || 'Failed to save employee.');
+            setError(getErrorMessage(err));
         } finally {
             setIsLoading(false);
         }
