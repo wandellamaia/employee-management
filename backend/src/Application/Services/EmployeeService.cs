@@ -137,7 +137,7 @@ public class EmployeeService : IEmployeeService
         return true;
     }
 
-    public async Task<EmployeeResponseDto?> UpdateEmployeeAsync(int id, EmployeeCreateDto updateDto, int requesterId, EmployeeRole requesterRole)
+    public async Task<EmployeeResponseDto?> UpdateEmployeeAsync(int id, EmployeeUpdateDto updateDto, int requesterId, EmployeeRole requesterRole)
     {
         _logger.LogInformation("Updating employee {Id} by requester {RequesterId}", id, requesterId);
         

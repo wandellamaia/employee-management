@@ -188,17 +188,16 @@ const EmployeeFormPage: React.FC = () => {
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
-                        {!isEdit && (
-                            <div>
-                                <label>Password</label>
-                                <input
-                                    type="password"
-                                    required
-                                    value={formData.password}
-                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                />
-                            </div>
-                        )}
+                        <div>
+                            <label>Password {isEdit && <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>(Leave blank to keep current)</span>}</label>
+                            <input
+                                type="password"
+                                required={!isEdit}
+                                value={formData.password || ''}
+                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                placeholder={isEdit ? '••••••••' : ''}
+                            />
+                        </div>
                         <div>
                             <label>Date of Birth</label>
                             <div style={{ position: 'relative' }}>

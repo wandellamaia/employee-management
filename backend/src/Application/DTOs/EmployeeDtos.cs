@@ -52,3 +52,33 @@ public class EmployeeResponseDto
     public DateTime DateOfBirth { get; set; }
     public List<PhoneDto> Phones { get; set; } = new();
 }
+
+public class EmployeeUpdateDto
+{
+    [Required]
+    public required string FirstName { get; set; }
+    
+    [Required]
+    public required string LastName { get; set; }
+    
+    [Required]
+    [EmailAddress]
+    public required string Email { get; set; }
+    
+    [Required]
+    public required string DocumentNumber { get; set; }
+    
+    [MinLength(6)]
+    public string? Password { get; set; }
+    
+    [Required]
+    public EmployeeRole Role { get; set; }
+    
+    public int? ManagerId { get; set; }
+    
+    [Required]
+    public DateTime DateOfBirth { get; set; }
+    
+    public List<PhoneDto> Phones { get; set; } = new();
+}
+

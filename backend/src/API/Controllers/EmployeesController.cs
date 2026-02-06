@@ -106,7 +106,7 @@ public class EmployeesController : ControllerBase
     }
     
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, [FromBody] EmployeeCreateDto updateDto)
+    public async Task<IActionResult> Update(int id, [FromBody] EmployeeUpdateDto updateDto)
     {
         var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value ?? User.FindFirst("role")?.Value;
         if (string.IsNullOrEmpty(roleClaim) || !Enum.TryParse<EmployeeRole>(roleClaim, out var requesterRole))
