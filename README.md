@@ -8,6 +8,10 @@ A employee management application built with .NET 8, React (TypeScript), Postgre
 - [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) (optional, for local development).
 - [Node.js](https://nodejs.org/) (optional, for local development).
 
+## Architecture
+
+![employeeService_architecture](employeeService_architecture.png)
+
 ## Getting Started
 
 The easiest way to run the entire stack is using Docker Compose.

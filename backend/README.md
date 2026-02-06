@@ -1,31 +1,11 @@
-# Employee Management - Backend
-
-This is the backend for the Employee Management system, built with .NET 8 following Clean Architecture principles.
+# Employee Management Backend
 
 ## Architecture
 
-The project is structured into four main layers, as visualized in the Mermaid diagram below:
+![employeeService_backend_flow](../employeeService_backend_flow.png)
 
-```mermaid
-graph TD
-    API[API Layer] --> Application[Application Layer]
-    API --> Infrastructure[Infrastructure Layer]
-    Infrastructure --> Application
-    Infrastructure --> Domain[Domain Layer]
-    Application --> Domain
-    
-    subgraph Layers
-        API
-        Infrastructure
-        Application
-        Domain
-    end
-    
-    style Domain fill:#f9f,stroke:#333,stroke-width:2px
-    style Application fill:#bbf,stroke:#333,stroke-width:2px
-    style Infrastructure fill:#dfd,stroke:#333,stroke-width:2px
-    style API fill:#fdd,stroke:#333,stroke-width:2px
-```
+## Setup
+This is the backend for the Employee Management system, built with .NET 8 following Clean Architecture principles.
 
 ### Layer Descriptions
 

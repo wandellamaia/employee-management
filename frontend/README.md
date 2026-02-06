@@ -2,6 +2,10 @@
 
 This is the frontend application for the Employee Management System, built with React, TypeScript, and Vite.
 
+## Architecture
+
+![employeeService_frontend_flow](../employeeService_frontend_flow.png)
+
 ## Prerequisites
 
 - **Node.js**: Version 20.19+ or 22.12+ is required.
