@@ -38,6 +38,11 @@ export interface EmployeeCreateDto {
     phones: { phoneNumber: string; type?: string }[];
 }
 
+export interface EmployeeUpdateDto extends Omit<EmployeeCreateDto, 'password'> {
+    password?: string;
+}
+
+
 export interface LoginDto {
     email: string;
     password: string;

@@ -33,6 +33,6 @@ docker-compose.override.yml
 .DS_Store
 Thumbs.db
 
-# Observability logs
+# OpenTelemetry / Grafana logs (if local)
 data/
 logs/

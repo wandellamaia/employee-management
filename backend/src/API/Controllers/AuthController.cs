@@ -21,12 +21,15 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
     {
+        _logger.LogInformation("POST login request for: {Email}", loginDto.Email);
         var token = await _authService.LoginAsync(loginDto);
         if (token == null)
         {
+            _logger.LogWarning("Invalid login attempt for: {Email}", loginDto.Email);
             return Unauthorized("Invalid email or password.");
         }
 
+        _logger.LogInformation("Login successful for: {Email}", loginDto.Email);
         return Ok(token);
     }
 }

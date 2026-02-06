@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../api/apiClient';
+import { getErrorMessage } from '../utils/errorUtils';
 import type { Employee } from '../types';
 import { EmployeeRole } from '../types';
 import {
@@ -70,8 +71,8 @@ const DashboardPage: React.FC = () => {
         try {
             await apiClient.delete(`/Employees/${id}`);
             setEmployees(employees.filter(e => e.id !== id));
-        } catch (error) {
-            alert('Failed to delete employee');
+        } catch (error: any) {
+            alert(getErrorMessage(error));
         }
     };
 

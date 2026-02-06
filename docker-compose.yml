@@ -1,0 +1,118 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: employee_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: employee_management
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: src/Dockerfile
+    container_name: employee_api
+    depends_on:
+      - db
+      - otel_collector
+    ports:
+      - "8080:8080"
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=employee_management;Username=postgres;Password=postgrespassword
+      - Jwt__Key=ThisIsASecretKeyThatIsLongEnoughForHMACSHA256Signature
+      - Jwt__Issuer=EmployeeApi
+      - Jwt__Audience=EmployeeApiClients
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_ENVIRONMENT=Development
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel_collector:4317
+      - OTEL_SERVICE_NAME=EmployeeManagement.API
+      - OTEL_RESOURCE_ATTRIBUTES=service.name=EmployeeManagement.API
+      - OTEL_LOGS_EXPORTER=otlp
+      - OTEL_METRICS_EXPORTER=otlp
+      - OTEL_TRACES_EXPORTER=otlp
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: employee_web
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+  # log service
+  loki:
+    image: grafana/loki:main
+    container_name: loki
+    ports:
+      - 3100:3100
+    volumes:
+      - ./observability/loki-config.yaml:/etc/loki/local-config.yaml
+    command: -config.file=/etc/loki/local-config.yaml
+
+  # trace service
+  tempo:
+    image: grafana/tempo:2.6.1
+    container_name: tempo
+    volumes:
+      - ./observability/tempo.yaml:/etc/tempo.yaml
+    ports:
+      - "3200:3200" # tempo /metrics
+    command: [ "-config.file=/etc/tempo.yaml" ]
+
+  # metrics service
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ./observability/prometheus.yaml:/etc/prometheus/prometheus.yml
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-remote-write-receiver
+      - --enable-feature=exemplar-storage
+      - --enable-feature=native-histograms
+
+  # observability service
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    environment:
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_BASIC_ENABLED: "false"
+    ports:
+      - 3000:3000
+    volumes:
+      - ./observability/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+    depends_on:
+      - loki
+      - prometheus
+      - tempo
+
+  otel_collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel_collector
+    ports:
+      - 4317:4317 # OTLP gRPC receiver
+      - 4318:4318 # OTLP http receiver
+      - 8889:8889 # Prometheus exporter metrics
+      - 1888:1888 # pprof extension
+      - 13133:13133 # health_check extension
+      - 55679:55679 # zpages extension, which trace operations via /debug/tracez
+    volumes:
+      - ./observability/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    command: [ "--config=/etc/otel-collector-config.yaml" ]
+    depends_on:
+      - loki
+      - tempo
+      - prometheus
+
+volumes:
+  postgres_data:
