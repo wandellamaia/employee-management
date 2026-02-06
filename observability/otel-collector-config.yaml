@@ -1,0 +1,56 @@
+extensions:
+  zpages:
+    endpoint: 0.0.0.0:55679
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+exporters:
+  # tracing
+  otlp/tempo:
+    endpoint: tempo:4319
+    tls:
+      insecure: true
+
+  # metrics
+  prometheus:  # expose metrics in prometheus format at otel collector
+    endpoint: 0.0.0.0:8889
+    metric_expiration: 180m
+    const_labels:
+      env: employee-prod
+
+  # logs
+  otlphttp/loki:
+    endpoint: http://loki:3100/otlp
+    tls:
+      insecure: true
+
+  debug:
+    verbosity: basic
+
+processors:
+  batch:
+
+service:
+  telemetry:
+    logs:
+      level: info
+  extensions: [zpages]
+
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/tempo, debug]
+    logs:
+      receivers: [otlp]
+      exporters: [otlphttp/loki, debug]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [prometheus, debug]
